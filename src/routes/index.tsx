@@ -145,13 +145,13 @@ function Index() {
         <div className="flex items-center gap-1 border-b border-border">
           {tabs.map(({ l, i: I }, idx) => (
             <button key={l} onClick={() => setTab(idx)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium ${idx === tab ? "rounded-t-md border-b-2 border-primary bg-info-soft font-semibold text-primary" : "hover:text-primary"}`}>
+              className={`flex items-center gap-2 whitespace-nowrap px-3 py-2.5 text-sm font-medium ${idx === tab ? "rounded-t-md border-b-2 border-primary bg-info-soft font-semibold text-primary" : "hover:text-primary"}`}>
               <I className="h-4 w-4" />{l}
             </button>
           ))}
           <div className="ml-auto flex gap-2 pb-1">
-            <button className="flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold"><Table2 className="h-4 w-4" />Rapor Oluştur</button>
-            <button className="flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold"><Bookmark className="h-4 w-4" />Kaydedilmiş Görünümler</button>
+            <button className="flex items-center gap-2 whitespace-nowrap rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold"><Table2 className="h-4 w-4" />Rapor Oluştur</button>
+            <button className="flex items-center gap-2 whitespace-nowrap rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold"><Bookmark className="h-4 w-4" />Kaydedilmiş Görünümler</button>
           </div>
         </div>
 
@@ -180,7 +180,7 @@ function Index() {
               <Seg items={["Ciro (Net Satış)", "Brüt Kâr", "Satış Adedi"]} active={chartTab} set={setChartTab} />
             </div>
             <div className="h-[150px]">
-              <ResponsiveContainer>
+              <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--primary)" stopOpacity={0.3} /><stop offset="100%" stopColor="var(--primary)" stopOpacity={0.02} /></linearGradient></defs>
                   <CartesianGrid stroke="var(--border)" />
@@ -202,7 +202,7 @@ function Index() {
             <h2 className="flex items-center gap-2 text-base font-bold">Satış Dağılımı (Kategori) <Info className="h-4 w-4 text-muted-foreground" /></h2>
             <div className="mt-2 flex items-center gap-4">
               <div className="relative h-[170px] w-[170px] shrink-0">
-                <ResponsiveContainer>
+                <ResponsiveContainer width="100%" height="100%">
                   <PieChart><Pie data={dist} dataKey="v" innerRadius={62} outerRadius={84} startAngle={90} endAngle={-270} stroke="var(--card)" strokeWidth={2}>
                     {dist.map((d) => <Cell key={d.n} fill={d.c} />)}
                   </Pie></PieChart>
