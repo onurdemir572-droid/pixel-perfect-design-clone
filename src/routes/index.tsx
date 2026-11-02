@@ -1,5 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import imgCimento from "@/assets/p-cimento.jpg";
+import imgDemir from "@/assets/p-demir.jpg";
+import imgTugla from "@/assets/p-tugla.jpg";
+import imgAlci from "@/assets/p-alci.jpg";
+import imgYalitim from "@/assets/p-yalitim.jpg";
+import { Users, MapPin, UserCircle2, Layers } from "lucide-react";
 import {
   Search, Bell, HelpCircle, FileText, ChevronDown, BarChart3, Home, Building2, Box, Database,
   Trophy, FileX, FileMinus, Table2, Bookmark, Calendar, Filter, RefreshCw, ShoppingCart, Coins,
@@ -44,15 +50,52 @@ const dist = [
   { n: "Diğer", v: 8.6, c: "var(--gray-dot)" },
 ];
 
-const rows = [
-  ["Çimento 50 kg", "Kaba Yapı", "torba", "4.960", "₺248.000", "₺202.400", "₺45.600", "%18,4", "₺4.560", 126, "🧱"],
-  ["İnşaat Demiri Ø12", "Kaba Yapı", "ton", "82,50", "₺182.500", "₺152.560", "₺29.940", "%16,9", "₺3.210", 98, "🔩"],
-  ["Tuğla 19x13,5x8,5", "İnce Yapı", "palet", "120", "₺98.240", "₺76.500", "₺21.740", "%22,1", "₺2.180", 76, "🟧"],
-  ["Alçı Sıva 25 kg", "İnce Yapı", "torba", "1.360", "₺76.300", "₺57.600", "₺18.700", "%24,5", "₺1.240", 54, "🛍️"],
-  ["Yalıtım Levhası 5 cm", "Boya & Yalıtım", "m²", "2.880", "₺62.400", "₺45.660", "₺17.340", "%27,8", "₺890", 32, "📦"],
-] as const;
+type Row = { n: string; img?: string; ic?: any; cat: string; unit: string; qty: string; net: number; cost: number; marj: string; iade: number; ops: number };
+const mk = (n: string, cat: string, unit: string, qty: string, net: number, cost: number, iade: number, ops: number, img?: string, ic?: any): Row => ({
+  n, cat, unit, qty, net, cost, iade, ops, img, ic, marj: "%" + (((net - cost) / net) * 100).toFixed(1).replace(".", ","),
+});
+const details: { head: [string, string, string, string]; rows: Row[] }[] = [
+  { head: ["Ürün", "Kategori", "Birim", "Miktar"], rows: [
+    mk("Çimento 50 kg", "Kaba Yapı", "torba", "4.960", 248000, 202400, 4560, 126, imgCimento),
+    mk("İnşaat Demiri Ø12", "Kaba Yapı", "ton", "82,50", 182500, 152560, 3210, 98, imgDemir),
+    mk("Tuğla 19x13,5x8,5", "İnce Yapı", "palet", "120", 98240, 76500, 2180, 76, imgTugla),
+    mk("Alçı Sıva 25 kg", "İnce Yapı", "torba", "1.360", 76300, 57600, 1240, 54, imgAlci),
+    mk("Yalıtım Levhası 5 cm", "Boya & Yalıtım", "m²", "2.880", 62400, 45060, 890, 32, imgYalitim),
+  ] },
+  { head: ["Müşteri", "Segment", "Şehir", "Sipariş"], rows: [
+    mk("Yıldız Yapı İnşaat A.Ş.", "Kurumsal", "İstanbul", "48", 212400, 170900, 3420, 48, undefined, Users),
+    mk("Demirtaş Müteahhitlik", "Kurumsal", "Ankara", "36", 164800, 135200, 2860, 36, undefined, Users),
+    mk("Kaya Yapı Market", "Bayi", "Bursa", "29", 118600, 93400, 1940, 29, undefined, Users),
+    mk("Ege Konut Ltd. Şti.", "Kurumsal", "İzmir", "22", 94200, 74100, 1120, 22, undefined, Users),
+    mk("Mehmet Arslan", "Bireysel", "Kocaeli", "14", 38900, 30600, 420, 14, undefined, Users),
+  ] },
+  { head: ["Kategori", "Grup", "Ürün Sayısı", "Miktar"], rows: [
+    mk("Kaba Yapı", "Yapı Malzemesi", "86", "12.480", 522300, 431200, 13600, 162, undefined, Layers),
+    mk("İnce Yapı", "Yapı Malzemesi", "142", "8.920", 338700, 264800, 8840, 104, undefined, Layers),
+    mk("Tesisat", "Teknik", "210", "6.340", 156300, 120900, 4210, 58, undefined, Layers),
+    mk("Boya & Yalıtım", "Bitiş", "98", "4.110", 116600, 85400, 3480, 38, undefined, Layers),
+    mk("Diğer", "Genel", "64", "2.260", 106660, 90150, 2350, 24, undefined, Layers),
+  ] },
+  { head: ["Şube", "Bölge", "Personel", "Müşteri"], rows: [
+    mk("Merkez Şube", "Marmara", "18", "412", 486200, 389700, 12400, 148, undefined, MapPin),
+    mk("Ankara Şube", "İç Anadolu", "12", "268", 302400, 244100, 8120, 96, undefined, MapPin),
+    mk("İzmir Şube", "Ege", "9", "194", 218600, 172800, 5340, 72, undefined, MapPin),
+    mk("Bursa Şube", "Marmara", "7", "142", 146900, 118200, 4020, 44, undefined, MapPin),
+    mk("Antalya Şube", "Akdeniz", "5", "98", 86460, 67660, 2600, 26, undefined, MapPin),
+  ] },
+  { head: ["Temsilci", "Şube", "Hedef", "Gerçekleşme"], rows: [
+    mk("Ahmet Toprak", "Merkez Şube", "₺300.000", "%104", 312600, 248900, 6120, 94, undefined, UserCircle2),
+    mk("Elif Şahin", "Ankara Şube", "₺250.000", "%98", 245800, 197300, 5280, 78, undefined, UserCircle2),
+    mk("Murat Kılıç", "İzmir Şube", "₺220.000", "%91", 201200, 160400, 4410, 66, undefined, UserCircle2),
+    mk("Zeynep Aydın", "Merkez Şube", "₺200.000", "%87", 173900, 137100, 3760, 52, undefined, UserCircle2),
+    mk("Can Öztürk", "Bursa Şube", "₺180.000", "%82", 147600, 118800, 2950, 38, undefined, UserCircle2),
+  ] },
+];
+const tabScale = [1, 9.6, 1, 1, 1, 0.08, 0.026];
+const months = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki"];
 
-const fmt = (n: number) => "₺" + n.toLocaleString("tr-TR");
+const fmt = (n: number) => "₺" + Math.round(n).toLocaleString("tr-TR");
+const num = (n: number) => Math.round(n).toLocaleString("tr-TR");
 
 function Sel({ label, value, icon }: { label: string; value: string; icon?: boolean }) {
   return (
@@ -99,16 +142,22 @@ function Seg({ items, active, set, small }: { items: string[]; active: number; s
   );
 }
 
-function TrendTip({ active, payload }: any) {
+function TrendTip({ active, payload, label: l, money }: any) {
   if (!active || !payload?.length) return null;
   const p = payload[0].payload;
   return (
     <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs shadow-lg">
-      <div className="mb-1 font-semibold">{p.d} Eki 2026</div>
-      <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-primary" />Bu Ay: <b className="ml-auto">{fmt(p.bu)}</b></div>
-      <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-gray-dot" />Önceki Ay: <b className="ml-auto">{fmt(p.on)}</b></div>
+      <div className="mb-1 font-semibold">{p.d} {l}</div>
+      <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-primary" />Bu Ay: <b className="ml-auto">{money ? fmt(p.bu) : num(p.bu)}</b></div>
+      <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-gray-dot" />Önceki Ay: <b className="ml-auto">{money ? fmt(p.on) : num(p.on)}</b></div>
     </div>
   );
+}
+
+function niceStep(x: number) {
+  const p = Math.pow(10, Math.floor(Math.log10(x || 1)));
+  const n = x / p;
+  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * p;
 }
 
 function Index() {
@@ -117,6 +166,24 @@ function Index() {
   const [detTab, setDetTab] = useState(0);
   const [view, setView] = useState(0);
   const [page, setPage] = useState(1);
+  const sc = tabScale[tab] ?? 1;
+  const det = details[detTab]!;
+  const pageRows = useMemo(() => {
+    const r = det.rows; const k = (page - 1) % r.length;
+    return page === 1 ? r : [...r.slice(k), ...r.slice(0, k)].map((x, i) => ({ ...x, n: x.n, net: x.net * (0.9 - i * 0.05) * (1 - page * 0.012), cost: x.cost * (0.9 - i * 0.05) * (1 - page * 0.012) }));
+  }, [det, page]);
+  const isMonthly = tab === 1;
+  const cm = [1, 0.2, 0.0032][chartTab]!;
+  const chartData = useMemo(() => isMonthly
+    ? months.map((m, i) => ({ d: m, bu: (620 + i * 62 + (i % 3) * 40) * 1000 * cm * 1.0, on: (540 + i * 50 + (i % 2) * 30) * 1000 * cm }))
+    : trend.map((t) => ({ d: t.d, bu: t.bu * cm * (tab === 1 ? 1 : sc === 1 ? 1 : sc * 10), on: t.on * cm * (sc === 1 ? 1 : sc * 10) })), [isMonthly, cm, sc, tab]);
+  const yMax = Math.max(...chartData.map((d) => d.bu));
+  const step = niceStep(yMax / 5);
+  const yTicks = Array.from({ length: 6 }, (_, i) => i * step);
+  const unitLabel = isMonthly ? "2026" : "Eki 2026";
+  const fmtY = (v: number) => chartTab === 2 ? num(v) : v.toLocaleString("tr-TR");
+  const k = (v: number) => fmt(v * sc);
+  const goTab = (i: number) => { setTab(i); setPage(1); if (i === 4) setDetTab(1); else if (i === 2) setDetTab(0); };
 
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">
@@ -144,7 +211,7 @@ function Index() {
 
         <div className="flex items-center gap-1 border-b border-border">
           {tabs.map(({ l, i: I }, idx) => (
-            <button key={l} onClick={() => setTab(idx)}
+            <button key={l} onClick={() => goTab(idx)}
               className={`flex items-center gap-2 whitespace-nowrap px-3 py-2.5 text-sm font-medium ${idx === tab ? "rounded-t-md border-b-2 border-primary bg-info-soft font-semibold text-primary" : "hover:text-primary"}`}>
               <I className="h-4 w-4" />{l}
             </button>
@@ -166,10 +233,10 @@ function Index() {
         </div>
 
         <div className="grid grid-cols-5 gap-3">
-          <Kpi icon={ShoppingCart} tone="blue" title="Net Satış" value="₺1.240.560" change="+%12,4" up sub="(Önceki Ay: ₺1.103.220)" />
-          <Kpi icon={Coins} tone="green" title="Brüt Kâr" value="₺248.112" change="+%15,9" up sub={<>Kâr Marjı: <b className="text-success">%20,0</b></>} />
-          <Kpi icon={ClipboardList} tone="indigo" title="Satış İşlemi" value="386" change="+%8,2" up sub="(Önceki Ay: 357)" />
-          <Kpi icon={Package} tone="red" title="İade Tutarı" value="₺32.480" change="+%22,6" sub="(Önceki Ay: ₺26.460)" />
+          <Kpi icon={ShoppingCart} tone="blue" title="Net Satış" value={k(1240560)} change="+%12,4" up sub={`(${isMonthly ? "Önceki Yıl" : "Önceki Ay"}: ${k(1103220)})`} />
+          <Kpi icon={Coins} tone="green" title="Brüt Kâr" value={k(248112)} change="+%15,9" up sub={<>Kâr Marjı: <b className="text-success">%20,0</b></>} />
+          <Kpi icon={ClipboardList} tone="indigo" title="Satış İşlemi" value={num(386 * Math.max(1, sc))} change="+%8,2" up sub={`(${isMonthly ? "Önceki Yıl" : "Önceki Ay"}: ${num(357 * Math.max(1, sc))})`} />
+          <Kpi icon={Package} tone="red" title="İade Tutarı" value={k(32480)} change="+%22,6" sub={`(${isMonthly ? "Önceki Yıl" : "Önceki Ay"}: ${k(26460)})`} />
           <Kpi icon={Target} tone="orange" title="Ortalama Satış Tutarı" value="₺3.216" change="+%3,9" up sub="(Önceki Ay: ₺3.096)" />
         </div>
 
@@ -181,14 +248,14 @@ function Index() {
             </div>
             <div className="h-[150px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={trend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--primary)" stopOpacity={0.3} /><stop offset="100%" stopColor="var(--primary)" stopOpacity={0.02} /></linearGradient></defs>
-                  <CartesianGrid stroke="var(--border)" />
-                  <XAxis dataKey="d" ticks={[1, 5, 10, 15, 20, 25, 31]} tickFormatter={(v) => `${v} Eki`} tick={{ fontSize: 12, fill: "var(--foreground)" }} axisLine={false} tickLine={false} />
-                  <YAxis ticks={[0, 20000, 40000, 60000, 80000, 100000]} domain={[0, 100000]} tickFormatter={(v) => v.toLocaleString("tr-TR")} tick={{ fontSize: 12, fill: "var(--foreground)" }} axisLine={false} tickLine={false} width={60} />
-                  <Tooltip content={<TrendTip />} />
-                  <Area type="monotone" dataKey="on" stroke="var(--gray-dot)" strokeWidth={2} fill="var(--muted)" fillOpacity={0.6} dot={false} />
-                  <Area type="monotone" dataKey="bu" stroke="var(--primary)" strokeWidth={2.5} fill="url(#g)" dot={false} activeDot={{ r: 5, stroke: "var(--card)", strokeWidth: 2 }} />
+                  <CartesianGrid stroke="var(--border)" strokeDasharray="0" />
+                  <XAxis dataKey="d" {...(isMonthly ? { interval: 0 } : { ticks: [1, 5, 10, 15, 20, 25, 31], tickFormatter: (v: number) => `${v} Eki` })} tick={{ fontSize: 12, fill: "var(--foreground)" }} axisLine={false} tickLine={false} />
+                  <YAxis ticks={yTicks} domain={[0, yTicks[5]!]} interval={0} tickFormatter={fmtY} tick={{ fontSize: 12, fill: "var(--foreground)" }} axisLine={false} tickLine={false} width={60} />
+                  <Tooltip content={<TrendTip label={unitLabel} money={chartTab !== 2} />} defaultIndex={isMonthly ? 9 : 19} cursor={{ stroke: "var(--gray-dot)", strokeDasharray: "4 4" }} />
+                  <Area type="monotone" dataKey="on" stroke="var(--gray-dot)" strokeWidth={2} fill="var(--muted)" fillOpacity={0.6} dot={(p: any) => { const show = isMonthly || [0, 4, 9, 14, 19, 24, 30].includes(p.index); return show ? <circle key={p.index} cx={p.cx} cy={p.cy} r={4} fill="var(--card)" stroke={"var(--gray-dot)"} strokeWidth={2} /> : <g key={p.index} />; }} />
+                  <Area type="monotone" dataKey="bu" stroke="var(--primary)" strokeWidth={2.5} fill="url(#g)" dot={(p: any) => { const show = isMonthly || [0, 4, 9, 14, 19, 24, 30].includes(p.index); return show ? <circle key={p.index} cx={p.cx} cy={p.cy} r={4} fill="var(--card)" stroke={"var(--primary)"} strokeWidth={2} /> : <g key={p.index} />; }} activeDot={{ r: 5, stroke: "var(--card)", strokeWidth: 2 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -207,7 +274,7 @@ function Index() {
                     {dist.map((d) => <Cell key={d.n} fill={d.c} />)}
                   </Pie></PieChart>
                 </ResponsiveContainer>
-                <div className="absolute inset-0 flex flex-col items-center justify-center"><b className="text-lg">₺1.240.560</b><span className="text-sm">Net Satış</span></div>
+                <div className="absolute inset-0 flex flex-col items-center justify-center"><b className="text-lg">{k(1240560)}</b><span className="text-sm">Net Satış</span></div>
               </div>
               <ul className="flex-1 space-y-3 text-sm">
                 {dist.map((d) => (
@@ -242,7 +309,7 @@ function Index() {
         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <div className="mb-3 flex items-center gap-6">
             <h2 className="text-lg font-bold">Satış Detayı</h2>
-            <Seg small items={["Ürün Bazlı", "Müşteri Bazlı", "Kategori Bazlı", "Şube Bazlı", "Temsilci Bazlı"]} active={detTab} set={setDetTab} />
+            <Seg small items={["Ürün Bazlı", "Müşteri Bazlı", "Kategori Bazlı", "Şube Bazlı", "Temsilci Bazlı"]} active={detTab} set={(i) => { setDetTab(i); setPage(1); }} />
             <div className="ml-auto flex items-center gap-2">
               <div className="flex gap-1">
                 {[List, LayoutGrid].map((I, i) => (
@@ -253,31 +320,48 @@ function Index() {
               <button className="flex h-9 w-9 items-center justify-center rounded-md border border-input"><Settings className="h-4 w-4" /></button>
             </div>
           </div>
+          {view === 0 ? (
           <table className="w-full text-sm">
             <thead className="bg-muted text-foreground">
               <tr className="[&>th]:px-3 [&>th]:py-2.5 [&>th]:font-medium">
-                <th className="w-12 text-center">#</th><th className="text-left">Ürün</th><th>Kategori</th><th>Birim</th>
-                <th className="text-right">Miktar</th><th className="text-right">Net Satış</th><th className="text-right">Maliyet</th>
+                <th className="w-12 text-center">#</th><th className="text-left">{det.head[0]}</th><th>{det.head[1]}</th><th>{det.head[2]}</th>
+                <th className="text-right">{det.head[3]}</th><th className="text-right">Net Satış</th><th className="text-right">Maliyet</th>
                 <th className="text-right">Brüt Kâr</th><th>Marj</th><th className="text-right">İade Tutarı</th><th className="text-right">İşlem Sayısı</th><th />
               </tr>
             </thead>
             <tbody>
-              {rows.map((r, i) => (
-                <tr key={r[0]} className="border-b border-border hover:bg-muted/50 [&>td]:px-3 [&>td]:py-2">
-                  <td className="text-center"><span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${i === 0 ? "bg-warning-soft text-danger" : ""}`}>{i + 1}</span></td>
-                  <td className="font-semibold"><span className="mr-3 text-xl">{r[10]}</span>{r[0]}</td>
-                  <td className="text-center"><span className="rounded-full bg-info-soft px-3 py-1 text-xs font-medium">{r[1]}</span></td>
-                  <td className="text-center">{r[2]}</td>
-                  <td className="text-right">{r[3]}</td><td className="text-right">{r[4]}</td><td className="text-right">{r[5]}</td><td className="text-right">{r[6]}</td>
-                  <td className="text-center"><span className="rounded-full bg-success-soft px-2 py-1 text-xs font-semibold text-success">{r[7]}</span></td>
-                  <td className="text-right">{r[8]}</td><td className="text-right">{r[9]}</td>
+              {pageRows.map((r, i) => (
+                <tr key={r.n} className="border-b border-border transition-colors hover:bg-muted/60 [&>td]:px-3 [&>td]:py-1.5">
+                  <td className="text-center"><span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${i === 0 && page === 1 ? "bg-warning-soft text-danger" : ""}`}>{(page - 1) * 5 + i + 1}</span></td>
+                  <td className="font-semibold"><div className="flex items-center gap-3">
+                    {r.img ? <img src={r.img} alt={r.n} loading="lazy" width={36} height={28} className="h-7 w-9 object-contain mix-blend-multiply" /> : <span className="flex h-7 w-9 items-center justify-center rounded-md bg-info-soft text-primary"><r.ic className="h-4 w-4" /></span>}
+                    {r.n}</div></td>
+                  <td className="text-center"><span className="rounded-full bg-info-soft px-3 py-1 text-xs font-medium">{r.cat}</span></td>
+                  <td className="text-center">{r.unit}</td>
+                  <td className="text-right">{r.qty}</td><td className="text-right">{fmt(r.net * sc)}</td><td className="text-right">{fmt(r.cost * sc)}</td><td className="text-right">{fmt((r.net - r.cost) * sc)}</td>
+                  <td className="text-center"><span className="rounded-full bg-success-soft px-2 py-1 text-xs font-semibold text-success">{r.marj}</span></td>
+                  <td className="text-right">{fmt(r.iade * sc)}</td><td className="text-right">{num(r.ops * Math.max(1, sc))}</td>
                   <td className="text-right"><button className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-input text-primary hover:bg-info-soft"><ArrowRight className="h-4 w-4" /></button></td>
                 </tr>
               ))}
             </tbody>
           </table>
+          ) : (
+            <div className="grid grid-cols-5 gap-3">
+              {pageRows.map((r, i) => (
+                <div key={r.n} className="rounded-xl border border-border p-4 transition hover:shadow-md">
+                  <div className="mb-3 flex items-center justify-between"><span className="text-xs font-bold text-muted-foreground">#{(page - 1) * 5 + i + 1}</span><span className="rounded-full bg-success-soft px-2 py-0.5 text-xs font-semibold text-success">{r.marj}</span></div>
+                  <div className="mb-3 flex h-20 items-center justify-center">{r.img ? <img src={r.img} alt={r.n} loading="lazy" width={96} height={80} className="h-20 object-contain mix-blend-multiply" /> : <r.ic className="h-10 w-10 text-primary" />}</div>
+                  <div className="font-semibold">{r.n}</div>
+                  <span className="mt-1 inline-block rounded-full bg-info-soft px-2 py-0.5 text-xs">{r.cat}</span>
+                  <div className="mt-3 flex justify-between text-sm"><span>Net Satış</span><b>{fmt(r.net * sc)}</b></div>
+                  <div className="flex justify-between text-sm"><span>Brüt Kâr</span><b>{fmt((r.net - r.cost) * sc)}</b></div>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="mt-4 flex items-center text-xs">
-            <span>Toplam 5 kayıt (Tümünü görmek için filtreleri kullanabilirsiniz)</span>
+            <span>Toplam {det.rows.length * 24} kayıt, gösterilen {(page - 1) * 5 + 1}–{page * 5} (Tümünü görmek için filtreleri kullanabilirsiniz)</span>
             <div className="ml-auto flex items-center gap-2">
               <span>Satır:</span>
               <button className="flex h-8 items-center gap-3 rounded-md border border-input px-3">10<ChevronDown className="h-3 w-3" /></button>
