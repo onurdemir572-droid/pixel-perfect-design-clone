@@ -1,5 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import imgCimento from "@/assets/p-cimento.jpg";
+import imgDemir from "@/assets/p-demir.jpg";
+import imgTugla from "@/assets/p-tugla.jpg";
+import imgAlci from "@/assets/p-alci.jpg";
+import imgYalitim from "@/assets/p-yalitim.jpg";
+import { Users, MapPin, UserCircle2, Layers } from "lucide-react";
 import {
   Search, Bell, HelpCircle, FileText, ChevronDown, BarChart3, Home, Building2, Box, Database,
   Trophy, FileX, FileMinus, Table2, Bookmark, Calendar, Filter, RefreshCw, ShoppingCart, Coins,
@@ -44,15 +50,52 @@ const dist = [
   { n: "Diğer", v: 8.6, c: "var(--gray-dot)" },
 ];
 
-const rows = [
-  ["Çimento 50 kg", "Kaba Yapı", "torba", "4.960", "₺248.000", "₺202.400", "₺45.600", "%18,4", "₺4.560", 126, "🧱"],
-  ["İnşaat Demiri Ø12", "Kaba Yapı", "ton", "82,50", "₺182.500", "₺152.560", "₺29.940", "%16,9", "₺3.210", 98, "🔩"],
-  ["Tuğla 19x13,5x8,5", "İnce Yapı", "palet", "120", "₺98.240", "₺76.500", "₺21.740", "%22,1", "₺2.180", 76, "🟧"],
-  ["Alçı Sıva 25 kg", "İnce Yapı", "torba", "1.360", "₺76.300", "₺57.600", "₺18.700", "%24,5", "₺1.240", 54, "🛍️"],
-  ["Yalıtım Levhası 5 cm", "Boya & Yalıtım", "m²", "2.880", "₺62.400", "₺45.660", "₺17.340", "%27,8", "₺890", 32, "📦"],
-] as const;
+type Row = { n: string; img?: string; ic?: any; cat: string; unit: string; qty: string; net: number; cost: number; marj: string; iade: number; ops: number };
+const mk = (n: string, cat: string, unit: string, qty: string, net: number, cost: number, iade: number, ops: number, img?: string, ic?: any): Row => ({
+  n, cat, unit, qty, net, cost, iade, ops, img, ic, marj: "%" + (((net - cost) / net) * 100).toFixed(1).replace(".", ","),
+});
+const details: { head: [string, string, string, string]; rows: Row[] }[] = [
+  { head: ["Ürün", "Kategori", "Birim", "Miktar"], rows: [
+    mk("Çimento 50 kg", "Kaba Yapı", "torba", "4.960", 248000, 202400, 4560, 126, imgCimento),
+    mk("İnşaat Demiri Ø12", "Kaba Yapı", "ton", "82,50", 182500, 152560, 3210, 98, imgDemir),
+    mk("Tuğla 19x13,5x8,5", "İnce Yapı", "palet", "120", 98240, 76500, 2180, 76, imgTugla),
+    mk("Alçı Sıva 25 kg", "İnce Yapı", "torba", "1.360", 76300, 57600, 1240, 54, imgAlci),
+    mk("Yalıtım Levhası 5 cm", "Boya & Yalıtım", "m²", "2.880", 62400, 45060, 890, 32, imgYalitim),
+  ] },
+  { head: ["Müşteri", "Segment", "Şehir", "Sipariş"], rows: [
+    mk("Yıldız Yapı İnşaat A.Ş.", "Kurumsal", "İstanbul", "48", 212400, 170900, 3420, 48, undefined, Users),
+    mk("Demirtaş Müteahhitlik", "Kurumsal", "Ankara", "36", 164800, 135200, 2860, 36, undefined, Users),
+    mk("Kaya Yapı Market", "Bayi", "Bursa", "29", 118600, 93400, 1940, 29, undefined, Users),
+    mk("Ege Konut Ltd. Şti.", "Kurumsal", "İzmir", "22", 94200, 74100, 1120, 22, undefined, Users),
+    mk("Mehmet Arslan", "Bireysel", "Kocaeli", "14", 38900, 30600, 420, 14, undefined, Users),
+  ] },
+  { head: ["Kategori", "Grup", "Ürün Sayısı", "Miktar"], rows: [
+    mk("Kaba Yapı", "Yapı Malzemesi", "86", "12.480", 522300, 431200, 13600, 162, undefined, Layers),
+    mk("İnce Yapı", "Yapı Malzemesi", "142", "8.920", 338700, 264800, 8840, 104, undefined, Layers),
+    mk("Tesisat", "Teknik", "210", "6.340", 156300, 120900, 4210, 58, undefined, Layers),
+    mk("Boya & Yalıtım", "Bitiş", "98", "4.110", 116600, 85400, 3480, 38, undefined, Layers),
+    mk("Diğer", "Genel", "64", "2.260", 106660, 90150, 2350, 24, undefined, Layers),
+  ] },
+  { head: ["Şube", "Bölge", "Personel", "Müşteri"], rows: [
+    mk("Merkez Şube", "Marmara", "18", "412", 486200, 389700, 12400, 148, undefined, MapPin),
+    mk("Ankara Şube", "İç Anadolu", "12", "268", 302400, 244100, 8120, 96, undefined, MapPin),
+    mk("İzmir Şube", "Ege", "9", "194", 218600, 172800, 5340, 72, undefined, MapPin),
+    mk("Bursa Şube", "Marmara", "7", "142", 146900, 118200, 4020, 44, undefined, MapPin),
+    mk("Antalya Şube", "Akdeniz", "5", "98", 86460, 67660, 2600, 26, undefined, MapPin),
+  ] },
+  { head: ["Temsilci", "Şube", "Hedef", "Gerçekleşme"], rows: [
+    mk("Ahmet Toprak", "Merkez Şube", "₺300.000", "%104", 312600, 248900, 6120, 94, undefined, UserCircle2),
+    mk("Elif Şahin", "Ankara Şube", "₺250.000", "%98", 245800, 197300, 5280, 78, undefined, UserCircle2),
+    mk("Murat Kılıç", "İzmir Şube", "₺220.000", "%91", 201200, 160400, 4410, 66, undefined, UserCircle2),
+    mk("Zeynep Aydın", "Merkez Şube", "₺200.000", "%87", 173900, 137100, 3760, 52, undefined, UserCircle2),
+    mk("Can Öztürk", "Bursa Şube", "₺180.000", "%82", 147600, 118800, 2950, 38, undefined, UserCircle2),
+  ] },
+];
+const tabScale = [1, 9.6, 1, 1, 1, 0.08, 0.026];
+const months = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki"];
 
-const fmt = (n: number) => "₺" + n.toLocaleString("tr-TR");
+const fmt = (n: number) => "₺" + Math.round(n).toLocaleString("tr-TR");
+const num = (n: number) => Math.round(n).toLocaleString("tr-TR");
 
 function Sel({ label, value, icon }: { label: string; value: string; icon?: boolean }) {
   return (
